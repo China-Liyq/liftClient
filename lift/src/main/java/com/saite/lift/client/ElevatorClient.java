@@ -2,9 +2,10 @@ package com.saite.lift.client;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.ArrayUtil;
-import com.saite.lift.coder.SaiteDooeEncoder;
-import com.saite.lift.coder.SaiteDoorDecoder;
-import com.saite.lift.common.bean.SaiteDoorProtocol;
+import cn.hutool.core.util.ByteUtil;
+import com.saite.lift.coder.SaiteLiftEncoder;
+import com.saite.lift.coder.SaiteLiftDecoder;
+import com.saite.lift.common.bean.SaiteLiftProtocol;
 import com.saite.lift.common.util.ConversionUtil;
 import com.saite.lift.common.util.ProtocolGenerator;
 import io.netty.bootstrap.Bootstrap;
@@ -28,19 +29,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @Author: liyq
+ * 梯控
+ * @author liyaqi
  */
 @Slf4j
 public class ElevatorClient {
-
     public static void main(String[] args) throws Exception {
 //        String host = "192.168.14.23";
 //        String host = "192.168.20.127";
 //        String host = "8.134.9.86";
 //        String host = "121.32.24.86";
-        String host = "192.168.28.200";
-        new ElevatorClient().connet(10099, host);
-
+        String host = "192.168.20.86";
+        int port = 10099;
+        new ElevatorClient().connet(port, host);
     }
 
     protected void connet(int port, String host) throws Exception {
@@ -55,8 +56,8 @@ public class ElevatorClient {
                         protected void initChannel(Channel ch) throws Exception {
                             ch
                                     .pipeline()
-                                    .addLast("SaiteDooeEncoder", new SaiteDooeEncoder())
-                                    .addLast("SaiteDoorDecoder", new SaiteDoorDecoder())
+                                    .addLast("SaiteDooeEncoder", new SaiteLiftEncoder())
+                                    .addLast("SaiteDoorDecoder", new SaiteLiftDecoder())
                                     .addLast("ping", new IdleStateHandler(10,5,10))
                                     .addLast(new NettyClientHandler());
                         }
@@ -78,31 +79,32 @@ public class ElevatorClient {
 
         int size = 0;
 
+        int floor = 1;
+
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            if (msg instanceof SaiteDoorProtocol) {
-                SaiteDoorProtocol protocol = (SaiteDoorProtocol) msg;
-                byte functionCode = protocol.getFunctionCode();
+            if (msg instanceof SaiteLiftProtocol liftProtocol) {
+                byte functionCode = liftProtocol.getFunctionCode();
                 String s = ConversionUtil.byteToHexString(functionCode);
                 if(functionCode == (byte) 0x50) {
-                    log.info("--心跳应答 :{}", s);
+//                    log.info("--心跳应答 :{}", s);
                 }
                 else if(functionCode == (byte) 0x51 ){
                     log.info("--告警应答 :{}", s);
                 }
                 else if(functionCode == (byte) 0x52) {
-                    if (checkResponseFrame(protocol)) {
+                    if (checkResponseFrame(liftProtocol)) {
                         log.info("数据应答：");
                         return;
                     }
                     String hard = "0001";
                     String soft = "01000002";
                     byte[] data = ArrayUtil.addAll(ConversionUtil.hexStringToBytes(hard), ConversionUtil.hexStringToBytes(soft));
-                    SaiteDoorProtocol version = ProtocolGenerator.getSaiteProtocolBySend((byte) 0x04, functionCode, protocol.getFrameSerial(), data);
+                    SaiteLiftProtocol version = ProtocolGenerator.getSaiteProtocolBySend((byte) 0x04, functionCode, liftProtocol.getFrameSerial(), data);
                     ctx.writeAndFlush(version);
                 }
                 else if(functionCode == (byte) 0x53) {
-                    if (checkResponseFrame(protocol)) {
+                    if (checkResponseFrame(liftProtocol)) {
                         return;
                     }
                     byte[] infos = new byte[14];
@@ -144,30 +146,29 @@ public class ElevatorClient {
                     byte[] data = ArrayUtil.addAll(infos,
                             floorDetectionMark,buttonTriggerDuration, longControlDoorDuration, networkTimeoutDuration,takeLiftTaskTimeoutDuration,
                             dispatchingSystemIpAddress, dispatchingSystemPort, dispatchingSystemIpAddress, dispatchingSystemPort);
-                    SaiteDoorProtocol version = ProtocolGenerator.getSaiteProtocolBySend((byte) 0x04, functionCode, protocol.getFrameSerial(), data);
+                    SaiteLiftProtocol version = ProtocolGenerator.getSaiteProtocolBySend((byte) 0x04, functionCode, liftProtocol.getFrameSerial(), data);
                     ctx.writeAndFlush(version);
                 }
                 else if(functionCode == (byte) 0x54) {
-                    if (checkResponseFrame(protocol)) {
+                    if (checkResponseFrame(liftProtocol)) {
                         return;
                     } else {
-                        SaiteDoorProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte)0x00, protocol, null);
+                        SaiteLiftProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte)0x00, liftProtocol, null);
                         ctx.writeAndFlush(reply);
                     }
                     TimeUnit.SECONDS.sleep(1);
                     log.info("收到配置信息: " + s);
                     byte[] bytes = new byte[1];
-                    bytes[0] = (byte) 0;
-                    log.info("数据内容：" + ConversionUtil.bytesToHexString(protocol.getData()));
-                    SaiteDoorProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, protocol, bytes);
+                    log.info("数据内容：" + ConversionUtil.bytesToHexString(liftProtocol.getData()));
+                    SaiteLiftProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, liftProtocol, bytes);
                     ctx.writeAndFlush(reply);
                 }
                 else if(functionCode == (byte) 0x55) {
-                    if (checkResponseFrame(protocol)) {
+                    if (checkResponseFrame(liftProtocol)) {
                         return;
                     }
                     log.info("开始下发升级包: "+s);
-                    byte[] data = protocol.getData();
+                    byte[] data = liftProtocol.getData();
                     log.info("数据内容：" + ConversionUtil.bytesToHexString(data));
                     byte[] sizeBytes = ConversionUtil.subByte(data, 0, 4);
                     size = ConversionUtil.bytesToInt(sizeBytes);
@@ -176,16 +177,15 @@ public class ElevatorClient {
                     log.info("crc32值: " + ConversionUtil.bytesToHexString(crc32Bytes));
                     //应答
                     byte[] bytes = new byte[1];
-                    bytes[0] = (byte) 0;
-                    SaiteDoorProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, protocol, bytes);
+                    SaiteLiftProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, liftProtocol, bytes);
                     ctx.writeAndFlush(reply);
                 }
                 else if(functionCode == (byte) 0x56) {
-                    if (checkResponseFrame(protocol)) {
+                    if (checkResponseFrame(liftProtocol)) {
                         return;
                     }
                     log.info("接收升级包碎片: "+ s);
-                    byte[] data = protocol.getData();
+                    byte[] data = liftProtocol.getData();
                     byte[] lengthBytes = ConversionUtil.subByte(data, 0, 2);
                     int chunkSize = ConversionUtil.bytesToInt(lengthBytes);
                     log.info("当前碎片为：[{}]", chunkSize);
@@ -207,10 +207,9 @@ public class ElevatorClient {
                     FileUtil.writeBytes(fileData, file);
                     //应答
                     byte[] bytes = new byte[3];
-                    bytes[0] = (byte) 0;
                     bytes[1] = lengthBytes[0];
                     bytes[2] = lengthBytes[1];
-                    SaiteDoorProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, protocol, bytes);
+                    SaiteLiftProtocol reply = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, liftProtocol, bytes);
                     ctx.writeAndFlush(reply);
 //                    if (chunkSize < 10) {
 //                    }
@@ -223,25 +222,38 @@ public class ElevatorClient {
                     log.info("升级结果答复: "+s);
                 }
                 else if(functionCode == (byte) 0x59){
-                    SaiteDoorProtocol saiteDoorProtocol = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x00, protocol, null);
-                    ctx.channel().write(saiteDoorProtocol);
+                    SaiteLiftProtocol saiteLiftProtocol = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x00, liftProtocol, null);
+                    ctx.channel().write(saiteLiftProtocol);
                     log.info("连接结果答复: "+s);
                 }
                 else if(functionCode == (byte) 0x5b){
                     byte[] bytes = new byte[1];
-                    bytes[0] = 0x00;
-                    SaiteDoorProtocol saiteDoorProtocol = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, protocol, bytes);
-                    ctx.channel().write(saiteDoorProtocol);
+                    SaiteLiftProtocol saiteLiftProtocol = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, liftProtocol, bytes);
+                    ctx.channel().write(saiteLiftProtocol);
                     log.info("连接结果答复: "+s);
                 } else if (functionCode == (byte) 0x5c) {
-                    byte frameType = protocol.getFrameType();
+                    byte frameType = liftProtocol.getFrameType();
                     if (frameType==0x00) {
                         return;
                     }
                     byte[] bytes = new byte[1];
                     bytes[0] = 0x01;
-                    SaiteDoorProtocol saiteDoorProtocol = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, protocol, bytes);
-                    ctx.channel().write(saiteDoorProtocol);
+                    SaiteLiftProtocol saiteLiftProtocol = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, liftProtocol, bytes);
+                    ctx.channel().write(saiteLiftProtocol);
+                } else if (functionCode == (byte) 0x5e) {
+                    byte frameType = liftProtocol.getFrameType();
+                    if (frameType==0x00) {
+                        return;
+                    }
+                    byte[] data = liftProtocol.getData();
+                    floor = ByteUtil.bytesToShort(data);
+                    log.info("下发呼叫楼层为：{}", floor);
+
+
+                    byte[] bytes = new byte[1];
+                    bytes[0] = 0x01;
+                    SaiteLiftProtocol saiteLiftProtocol = ProtocolGenerator.getSaiteProtocolByReply((byte) 0x04, liftProtocol, bytes);
+                    ctx.channel().write(saiteLiftProtocol);
                 }
             }
             super.channelRead(ctx, msg);
@@ -263,7 +275,7 @@ public class ElevatorClient {
                     }
                 }
                 bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(mergeFile, true));
-                for (Integer i = 1; i <= merge; i++) {
+                for (int i = 1; i <= merge; i++) {
                     File tempFile = new File(FILE_PATH + i);
                     byte[] bytes = FileUtil.readBytes(tempFile);
 //                    byte[] bytes = FileUtils.readFileToByteArray(tempFile);
@@ -292,7 +304,7 @@ public class ElevatorClient {
 
         }
 
-        public boolean checkResponseFrame(SaiteDoorProtocol protocol) {
+        public boolean checkResponseFrame(SaiteLiftProtocol protocol) {
             return Objects.equals(protocol.getFrameType(), (byte)0x00);
         }
 
@@ -307,13 +319,13 @@ public class ElevatorClient {
             if (evt instanceof IdleStateEvent) {
                 IdleState state = ((IdleStateEvent) evt).state();
                 switch (state) {
-                    case READER_IDLE:
-                        log.warn("读空闲！！");
-                        break;
-                    case WRITER_IDLE:
-                        log.warn("写空闲！！");
-                       byte function = 0x50;
-                       String sn = "EC-8097";
+                    case READER_IDLE -> {
+//                        log.warn("读空闲！！");
+                    }
+                    case WRITER_IDLE -> {
+//                        log.warn("写空闲！！");
+                        byte function = 0x50;
+                        String sn = "EC-8097";
                         byte[] snData = sn.getBytes(StandardCharsets.UTF_8);
                         int length = snData.length;
                         byte[] ints = ConversionUtil.intToTwoByteArray(length);
@@ -322,32 +334,35 @@ public class ElevatorClient {
 //                        int statusLength = 7;
                         int statusLength = 8;
                         byte[] info = new byte[statusLength];
+                        // 状态 0：未知，1：待机，2：占用，3：升级，
                         info[0] = 0x01;
                         info[1] = 0x03;
-                        info[2] = 0x00;
-                        info[3] = 0x01;
+                        // 楼层
+                        info[2] = (byte) floor;
+                        //方向 0下 1上
+                        info[3] = (byte) (floor % 2 == 0 ? 0x00 : 0x01);
                         info[4] = (byte) 0xff;
+                        //
                         info[5] = 0x04;
                         info[6] = 0x00;
-                        info[7] = 0x00;
+                        //电梯门状态 0 关 1开
+                        info[7] = (byte) (floor % 2 == 0 ? 0x00 : 0x01);
                         byte[] data = ArrayUtil.addAll(data1, snData, info);
-                        SaiteDoorProtocol saiteDoorProtocol = generateProtocol(function, data);
+                        SaiteLiftProtocol saiteLiftProtocol = generateProtocol(function, data);
                         a++;
                         if (a > 3) {
                             /*发送告警*/
 //                            testAlarm(ctx);
 //                            uploadStatus(ctx);
 //                            TimeUnit.SECONDS.sleep(25);
-                            log.warn("数据:{}",a);
+                            log.warn("数据:{}", a);
                             a = 0;
                         }
-                        ctx.channel().writeAndFlush(saiteDoorProtocol);
-                        break;
-                    case ALL_IDLE:
-                        log.warn("读写空闲！！");
-                        break;
-                    default:
-                        break;
+                        ctx.channel().writeAndFlush(saiteLiftProtocol);
+                    }
+                    case ALL_IDLE -> log.warn("读写空闲！！");
+                    default -> {
+                    }
                 }
             }
             super.userEventTriggered(ctx, evt);
@@ -366,7 +381,7 @@ public class ElevatorClient {
             alarm[2] = 0x00;
             alarm[3] = 0x04;
             byte alarmFunction = 0x51;
-            SaiteDoorProtocol protocol = generateProtocol(alarmFunction, alarm);
+            SaiteLiftProtocol protocol = generateProtocol(alarmFunction, alarm);
             ctx.channel().writeAndFlush(protocol);
         }
 
@@ -378,13 +393,13 @@ public class ElevatorClient {
             alarm[0] = 0x01;
             alarm[1] = 0x01;
             byte alarmFunction = 0x57;
-            SaiteDoorProtocol protocol = generateProtocol(alarmFunction, alarm);
+            SaiteLiftProtocol protocol = generateProtocol(alarmFunction, alarm);
             ctx.channel().writeAndFlush(protocol);
         }
 
-        public SaiteDoorProtocol generateProtocol(byte function, byte[] data){
-            Integer frameNo = 12;
-            return ProtocolGenerator.getSaiteProtocolBySend((byte) 0x03, function, frameNo.byteValue(), data);
+        public SaiteLiftProtocol generateProtocol(byte function, byte[] data){
+            int frameNo = 12;
+            return ProtocolGenerator.getSaiteProtocolBySend((byte) 0x03, function, (byte) frameNo, data);
         }
 
         @Override

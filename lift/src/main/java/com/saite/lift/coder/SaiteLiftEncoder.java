@@ -1,7 +1,7 @@
 package com.saite.lift.coder;
 
 import cn.hutool.core.util.ArrayUtil;
-import com.saite.lift.common.bean.SaiteDoorProtocol;
+import com.saite.lift.common.bean.SaiteLiftProtocol;
 import com.saite.lift.common.util.ConversionUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,9 +12,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author llw
  */
 @Slf4j
-public class SaiteDooeEncoder extends MessageToByteEncoder<SaiteDoorProtocol> {
+public class SaiteLiftEncoder extends MessageToByteEncoder<SaiteLiftProtocol> {
     @Override
-    protected void encode(ChannelHandlerContext channelHandlerContext, SaiteDoorProtocol protocol, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext channelHandlerContext, SaiteLiftProtocol protocol, ByteBuf out) throws Exception {
         out.writeByte(protocol.getHeader1());
         out.writeByte(protocol.getHeader2());
         //数据长度,需要先发低字节

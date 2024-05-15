@@ -1,6 +1,6 @@
 package com.saite.lift.coder;
 
-import com.saite.lift.common.bean.SaiteDoorProtocol;
+import com.saite.lift.common.bean.SaiteLiftProtocol;
 import com.saite.lift.common.util.ConversionUtil;
 import com.saite.lift.common.util.VerifyUtil;
 import io.netty.buffer.ByteBuf;
@@ -16,7 +16,7 @@ import java.util.List;
  * @author llw
  */
 @Slf4j
-public class SaiteDoorDecoder extends ByteToMessageDecoder {
+public class SaiteLiftDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf inBuf, List<Object> list) throws Exception {
         int count = inBuf.readableBytes();
@@ -34,7 +34,7 @@ public class SaiteDoorDecoder extends ByteToMessageDecoder {
             byte header1 = inBuf.readByte();
             try {
                 if (header1 == (byte) 0x55) {
-                    SaiteDoorProtocol protocol = new SaiteDoorProtocol();
+                    SaiteLiftProtocol protocol = new SaiteLiftProtocol();
                     byte header2 = inBuf.readByte();
                     protocol.setHeader1(header1);
                     protocol.setHeader2(header2);
@@ -42,7 +42,7 @@ public class SaiteDoorDecoder extends ByteToMessageDecoder {
                     byte[] lenByte = new byte[2];
                     inBuf.readBytes(lenByte);
                     short len = (short) ConversionUtil.bytesToInt(lenByte);
-                    log.info("数据长度：{}", len);
+//                    log.info("数据长度：{}", len);
                     if (count < len + 11) {
                         inBuf.resetReaderIndex();
                         return;

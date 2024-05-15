@@ -1,7 +1,7 @@
 package com.saite.lift.common.util;
 
 
-import com.saite.lift.common.bean.SaiteDoorProtocol;
+import com.saite.lift.common.bean.SaiteLiftProtocol;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -14,9 +14,9 @@ import java.util.Objects;
 @Slf4j
 public class ProtocolGenerator {
 
-    public static SaiteDoorProtocol getSaiteProtocolBySend(byte frameType, byte functionCode, byte frameNo, byte[] data){
+    public static SaiteLiftProtocol getSaiteProtocolBySend(byte frameType, byte functionCode, byte frameNo, byte[] data){
         int length = Objects.nonNull(data) ? data.length : 0;
-        SaiteDoorProtocol protocol = new SaiteDoorProtocol();
+        SaiteLiftProtocol protocol = new SaiteLiftProtocol();
         //帧头
         byte header1 = (byte) 0x55;
         protocol.setHeader1(header1);
@@ -45,10 +45,10 @@ public class ProtocolGenerator {
         protocol.setCrc(crc16);
         return protocol;
     }
-    public static SaiteDoorProtocol getSaiteProtocolByReply(SaiteDoorProtocol sourceProtocol, byte[] data){
+    public static SaiteLiftProtocol getSaiteProtocolByReply(SaiteLiftProtocol sourceProtocol, byte[] data){
         int length = data.length;
         if(length > 0 ) {
-            SaiteDoorProtocol protocol = new SaiteDoorProtocol();
+            SaiteLiftProtocol protocol = new SaiteLiftProtocol();
             //帧头
             protocol.setHeader1(sourceProtocol.getHeader1());
             protocol.setHeader2(sourceProtocol.getHeader2());
@@ -79,9 +79,9 @@ public class ProtocolGenerator {
         return null;
     }
 
-    public static SaiteDoorProtocol getSaiteProtocolByReply(Byte frameType, SaiteDoorProtocol sourceProtocol, byte[] data){
+    public static SaiteLiftProtocol getSaiteProtocolByReply(Byte frameType, SaiteLiftProtocol sourceProtocol, byte[] data){
         int length = Objects.nonNull(data) ? data.length : 0;
-        SaiteDoorProtocol protocol = new SaiteDoorProtocol();
+        SaiteLiftProtocol protocol = new SaiteLiftProtocol();
         //帧头
         protocol.setHeader1(sourceProtocol.getHeader1());
         protocol.setHeader2(sourceProtocol.getHeader2());

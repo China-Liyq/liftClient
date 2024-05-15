@@ -19,7 +19,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class SaiteDoorProtocol {
+public class SaiteLiftProtocol {
     /**
      * 消息头
      */
