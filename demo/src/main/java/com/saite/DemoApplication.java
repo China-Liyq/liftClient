@@ -1,9 +1,17 @@
-package com.saite.demo;
+package com.saite;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * 服务入口
+ * @author liyaqi
+ */
 @SpringBootApplication
+@EnableAsync
+@EnableScheduling
 public class DemoApplication {
 
     public static void main(String[] args) {

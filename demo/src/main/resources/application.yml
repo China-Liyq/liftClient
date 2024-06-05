@@ -1,1 +1,70 @@
-spring.application.name=demo
+server:
+  port: 17000
+  max-http-header-size: 20480
+
+https:
+  enable: true
+  port: 17001
+  keystore: /home/dispatch/files/ssl/keystore.p12
+  keystorePassword: 123456
+  keyAlias: tomcat
+  keyStoreType: PKCS12
+
+spring:
+  application:
+    name: robot
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    properties:
+      hibernate:
+        #        format_sql: true
+        #        use_sql_comments: true
+        #jpa批量操作
+        jdbc:
+          batch_size: 150
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        #jpa批量操作
+    #    show-sql: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://192.168.0.7:3306/robot?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&createDatabaseIfNotExist=true
+#    url: jdbc:mysql://192.168.0.7:3306/robot?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&createDatabaseIfNotExist=true
+#    username: root
+#    password: Saite123!
+    url: jdbc:mysql://192.168.0.65:3306/test?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    username: root
+    password: 123456
+  servlet:
+    multipart:
+      #上传文件总的最大值
+      max-request-size: 200MB
+      #单个文件最大值
+      max-file-size: 200MB
+
+
+
+
+
+#excel报表导出地址
+reporter:
+  excel:
+    output-path: /home/dispatch/files/excel/
+
+file:
+  staticAccessPath: /uploadf/**
+  uploadFolder: file:${upload.path}
+  video:
+    accessPath: http://${upload.ip}:${server.port}/uploadf/video/
+
+
+
+
+
+
+
+
+
