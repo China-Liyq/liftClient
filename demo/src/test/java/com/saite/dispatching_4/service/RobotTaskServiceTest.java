@@ -42,11 +42,43 @@ class RobotTaskServiceTest {
     }
 
     @Test
-    void simulateRobotTask() {
-        LocalDate date = LocalDate.of(2024, 5, 20);
-        for (int i = 0; i < 10; i++) {
-            robotTaskService.simulateRobotTask(date.plusDays(i));
+    void simulateRobotTaskV1() {
+
+        LocalDate date = LocalDate.of(2024, 5, 27);
+        for (int i = 0; i <= 7; i++) {
+            robotTaskService.simulateRobotTask(date.minusDays(i), i + 1);
+        }
+    }
+
+    @Test
+    void simulateRobotTaskV2() {
+        LocalDate date = LocalDate.of(2024, 6, 3);
+        for (int i = 0; i <= 8; i++) {
+            LocalDate minusDays = date.minusDays(i);
+            log.info("日期：{}", minusDays);
+            robotTaskService.simulateRobotTask(minusDays, i + 1);
         }
 
+    }
+
+    @Test
+    void simulateRobotTask2() {
+        //模拟2023-xx-x - 2024-xx-xx
+        LocalDate startDate = LocalDate.of(2023, 10, 11);
+        LocalDate date = LocalDate.of(2024, 5, 19);
+        log.info("起始日期：{}", date);
+        int i = 1;
+        while (!date.isBefore(startDate)) {
+            log.info("序号：[{}]日期：{}",i, date);
+            robotTaskService.simulateRobotTask(date, i);
+
+            if (i % 14 == 0) {
+                log.info("--序号：[{}]日期：{}",i, date);
+                i = 0;
+            }
+            date = date.minusDays(1);
+            i++;
+        }
+        log.info("结束日期：{}", date);
     }
 }

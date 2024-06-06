@@ -42,6 +42,10 @@ public class RobotTask implements Serializable {
     @GeneratedValue(generator = "autoId")
     private Integer id;
 
+//    @ApiModelProperty(value = "任务编码", required = true, allowEmptyValue = false)
+    @Column(unique = true)
+    private String code;
+
 //    @ApiModelProperty(value = "创建时间", required = false, allowEmptyValue = true)
 //    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Column(name = "create_time", columnDefinition = "datetime not null comment '时间'")
@@ -58,6 +62,15 @@ public class RobotTask implements Serializable {
     @JsonIgnore
     @Column(length = 10)
     private String day;
+
+    /**
+     * 任务结束时间
+     */
+//    @ApiModelProperty(value = "任务结束时间", required = false, allowEmptyValue = true)
+//    @JsonIgnore
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @Column(name = "end_time" ,columnDefinition = "datetime not null comment '时间'")
+    private LocalDateTime endTime;
 
 //    @ApiModelProperty(value = "执行时间", required = true, allowEmptyValue = false)
 //    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -96,14 +109,6 @@ public class RobotTask implements Serializable {
     @Column(name = "plan_type")
     private Integer planType;
 
-    /**
-     * 任务结束时间
-     */
-//    @ApiModelProperty(value = "任务结束时间", required = false, allowEmptyValue = true)
-//    @JsonIgnore
-//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    @Column(name = "end_time" ,columnDefinition = "datetime not null comment '时间'")
-    private LocalDateTime endTime;
 
     /****  注  ： 添加任务类型需到 RobotTaskTypeEnum 枚举添加 *****/
 //    @ApiModelProperty(value = "任务类型，eg:1-配送任务 2-清扫任务 3-巡检任务 4-召回任务 5-呼叫任务 6-回待机点 " +
@@ -134,9 +139,7 @@ public class RobotTask implements Serializable {
     @Column(name = "place_station_id")
     private Integer placeStationId;
 
-//    @ApiModelProperty(value = "任务编码", required = true, allowEmptyValue = false)
-    @Column(unique = true)
-    private String code;
+
 
 //    @ApiModelProperty(value = "任务名称", required = true, allowEmptyValue = false)
     @Column(name = "name")
@@ -152,14 +155,14 @@ public class RobotTask implements Serializable {
     private Boolean fetchProduct = false;
 
 
-    @Column(name = "deleted", columnDefinition = "tinyint not null default 0 comment '是否已删除：0-否 1-是'")
-    private int deleted = 0;
+//    @Column(name = "deleted", columnDefinition = "tinyint not null default 0 comment '是否已删除：0-否 1-是'")
+//    private Byte deleted = 0;
 
 
-    //医废2.0项目新增字段
-//    @ApiModelProperty(value = "下单方式，1定时任务，2箱体呼叫，3人工下单,4调度下单,5app下单,6触发装置下单,7HIS系统退药呼叫,8医药箱搬运任务")
-    @Column(name = "ordering_method",nullable = false,columnDefinition="int default 0")
-    private Integer orderingMethod = 0;
+//    //医废2.0项目新增字段
+////    @ApiModelProperty(value = "下单方式，1定时任务，2箱体呼叫，3人工下单,4调度下单,5app下单,6触发装置下单,7HIS系统退药呼叫,8医药箱搬运任务")
+//    @Column(name = "ordering_method",nullable = false,columnDefinition="int default 0")
+//    private Integer orderingMethod = 0;
 
     /*合并污物回收父订单*/
     @Column(name = "merge_parent_task_id")
@@ -182,25 +185,25 @@ public class RobotTask implements Serializable {
     private String thirdPlatformCode;
 
     @Column(name = "third_platform_finish_confirm", columnDefinition = "tinyint default 0 comment '三方平台定义的完成流程确定'")
-    private Integer thirdPlatformFinishConfirm;
+    private Byte thirdPlatformFinishConfirm;
 
     @Column(name = "sample_task_id", columnDefinition = "int comment '样本呼叫的id'")
     private Integer sampleTaskId;
     @Column(name = "is_disinfect", columnDefinition = "tinyint not null default 0 comment '订单完成后是否消毒(轮椅特有)'")
-    private int isDisinfect;
+    private Byte isDisinfect;
     /**
      * 是否一次性任务？
      */
     @Column(name = "once")
     private Boolean once = true;
     @Column(name = "order_source", columnDefinition = "tinyint not null default 1 comment '订单来源：1-调度系统，2-机器人 '")
-    private int orderSource;
+    private Byte orderSource;
     //    @ApiModelProperty(value = "四柜门任务医嘱信息，医嘱摆单号，格式：单号;单号;", required = false,allowEmptyValue = true)
     @Column(name = "remarks", columnDefinition = "varchar(200) default '' comment '备注'")
     private String remarks;
 
     @Column(name = "sign_status", columnDefinition = "tinyint not null default 0 comment '是否被签收,调度确认签收1,签收屏幕为2'")
-    private int signStatus;
+    private Byte signStatus;
 
 
 

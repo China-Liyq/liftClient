@@ -34,7 +34,7 @@ public class SaiteLiftEncoder extends MessageToByteEncoder<SaiteLiftProtocol> {
             }
         }
         out.writeBytes(protocol.getCrc());
-        //todo 测试
+        // 测试
         byte[] bytes = new byte[9];
         bytes[0] = protocol.getHeader1();
         bytes[1] = protocol.getHeader2();
@@ -47,7 +47,7 @@ public class SaiteLiftEncoder extends MessageToByteEncoder<SaiteLiftProtocol> {
         bytes[8] = protocol.getFrameSerial();
         log.info("出口数据：[{}]", ConversionUtil.bytesToHexString(ArrayUtil.addAll(bytes, protocol.getData(), protocol.getCrc())));
 
-        //TODO 测试数据用完删除
+        //测试数据用完删除
         byte functionCode = protocol.getFunctionCode();
         if(functionCode == (byte) 0x50){
 //            log.info("查询梯控状态数据 :"+protocol);

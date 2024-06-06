@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * TODO
+ * 机器人任务服务
  *
  * @author liyaqi
  * @date 2024/6/4
@@ -25,6 +25,6 @@ public interface RobotTaskService {
      * @date 2024/6/4
      * @param date 日期
      */
-    void simulateRobotTask(LocalDate date);
+    void simulateRobotTask(LocalDate date, int gap);
 
 }
