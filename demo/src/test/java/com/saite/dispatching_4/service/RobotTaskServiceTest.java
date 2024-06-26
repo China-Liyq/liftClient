@@ -64,8 +64,13 @@ class RobotTaskServiceTest {
     @Test
     void simulateRobotTask2() {
         //模拟2023-xx-x - 2024-xx-xx
-        LocalDate startDate = LocalDate.of(2023, 10, 11);
-        LocalDate date = LocalDate.of(2024, 5, 19);
+        //第一期
+//        LocalDate startDate = LocalDate.of(2023, 10, 11);
+//        LocalDate date = LocalDate.of(2024, 5, 19);
+
+        //第二期
+        LocalDate startDate = LocalDate.of(2024, 6, 3);
+        LocalDate date = LocalDate.of(2024, 6, 23);
         log.info("起始日期：{}", date);
         int i = 1;
         while (!date.isBefore(startDate)) {
